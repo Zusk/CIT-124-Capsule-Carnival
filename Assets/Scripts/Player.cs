@@ -9,41 +9,63 @@ public class Player : MonoBehaviour
     //Player jump height!
     private readonly float jump_height = 4;
 
-    //Used for the ground detection script!
-    private readonly float groundCheckDistance = 0.2f;
     public LayerMask groundMask;
 
     //variables for holding keyboard pressed
     private bool spaceKeyWasPressed;
     //variable for horizontalInput
     private float horizontalInput;
-    //variable for holding getRigidBody component
+    //variable for our components
     private Rigidbody rigidbodyComponent;
     private ParticleSystem particleComponent;
     private Animator animatorComponent;
 
+    //A constant to define wall check distance.
+    private readonly float horizontalWallCheckDistBase = 0.2f;
+    //Used for the ground detection script!
+    private readonly float groundCheckDistance = 0.2f;
+
     private bool Is_Grounded()
     {
+        //Mostly as-is from the example code. Usually it would have been easier to include a character controller component and use
+        //unity's built-in IsGrounded check, but this is sufficient with how we are using it!
         return Physics.CheckSphere(transform.position, groundCheckDistance, groundMask);
     }
     private bool Is_Touching_Wall()
     {
-        Debug.DrawRay(new Vector3(transform.position.x, transform.position.y, transform.position.z), new Vector3((horizontalInput * 500) + transform.position.x, transform.position.y, transform.position.z), Color.blue, 15f);
-        RaycastHit hit;
-        return Physics.Raycast(new Vector3(transform.position.x, transform.position.y + 0.1f, transform.position.z), new Vector3((horizontalInput * 500) + transform.position.x, transform.position.y + 0.1f, transform.position.z), out hit, 0.2f * Mathf.Abs(horizontalInput), groundMask);
+        //This is slightly more complicated, but I will explain it here!
+        //With this bool, we need to predict if your current horizontal momentum, if carried out, would push us into a wall.
+        //How we do this is fire a short ray from where we are towards our current move direction ( Our current position modified by our horizontalInput )
+        //If we hit a wall with this short ray, we know we are walking into a wall!
+
+        return Physics.Raycast(
+            //First line is its origin. It starts at your current transform position, but does it slightly above where your feet are - as to avoid the floor.
+            new Vector3(transform.position.x, transform.position.y + 0.1f, transform.position.z),
+            //Second line is our ray's intended destination. horizontalInput looks as if it lerps between current and intended destination, so we multiply it a ton to get
+            //Its ultimate direction.
+            new Vector3(transform.position.x + (horizontalInput * 500), transform.position.y + 0.1f, transform.position.z),
+            //Third line is _, as we don't need to access the hit info here.
+            out _,
+            //Fourth line is the short distance we are checking by multiplied by the absolute value of our horizontalInput - scaling from 0 to 1 usually.
+            horizontalWallCheckDistBase * Mathf.Abs(horizontalInput), groundMask);
     }
     private Vector3 Jump_Formula()
     {
+        //This is very simple, just add the jump height to y with addforce!
         return new Vector3(0, jump_height, 0);
     }
     private Vector3 Speed_Formula()
     {
-        return new Vector3(horizontalInput * speed, rigidbodyComponent.velocity.y, 0);
+        //Speed formula!
+        //X is a value based on your speed; a constant that defines how fast you move generally times your horizontal input.
+        //Y is just what your vertical velocity is already, for vertical velocity we use add force.
+        //Z is 0 always.
+        return new Vector3(speed * horizontalInput, rigidbodyComponent.velocity.y, 0);
     }
 
     void Start()
     {
-        //Reduces runtime calls.
+        //Reduces runtime calls by building references to our components here at runtime, rather then in our loops.
         particleComponent = GetComponent<ParticleSystem>();
         rigidbodyComponent = GetComponent<Rigidbody>();
         animatorComponent = GetComponent<Animator>();
@@ -51,15 +73,17 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        //Gets player input.
+        //Gets player input. We will use this later!
         Player_Input();
     }
 
     //
     private void FixedUpdate()
     {
-        //Moves the player based on input.
+        //Moves the player based on input!
         Player_Move();
+        //Sets the animators state based on your current vertical velocity.
+        //It converts your velocity to an absolute value because we want how fast you are moving, either up or down.
         animatorComponent.SetFloat("vertical_velocity", Mathf.Abs(rigidbodyComponent.velocity.y));
     }
 
@@ -80,14 +104,13 @@ public class Player : MonoBehaviour
 
     void Player_Move()
     {
+        //Figure out if we are jumping first!
         Jump();
+        //Using translate to move your character leads to jittering movement if you don't include an additional layer of wall detection
+        //on top of your standard physics check. This is to help with that!
         if (Is_Touching_Wall())
         {
             horizontalInput = 0;
-        }
-        else
-        {
-            Debug.Log("Nope!");
         }
         //Old Approach:
         //rigidbodyComponent.velocity = Speed_Formula();
@@ -103,6 +126,7 @@ public class Player : MonoBehaviour
     {
         if (spaceKeyWasPressed == true && Is_Grounded())
         {
+            //Play the particle component! The particle component is a non-looping component which has a emission.
             particleComponent.Play();
             //if space was pressed, get Rigidbody component from our player
             //add a force to the up using velocity change force mode
