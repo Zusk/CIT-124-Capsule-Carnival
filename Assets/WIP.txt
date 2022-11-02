@@ -1,0 +1,9 @@
+// Here are some level generation scripts that can generate level geometry data based on PNG color info.
+
+// Got it working right a few times, but was too buggy for this project. Some of the issues I had were;
+// Unity seemed prone to not being able to pull exact color information from the file. Probably could have got around this with using GIMP and a more accurate file format like BMP, but
+was somewhat out of the scope of the project for something that was meant to make it easier for me.
+
+// Unity has no camera occlusion in the scene view editor. I know from the 124 videos that your computer isn't the best - didn't want to brick your machine by loading in 1000+ differently colored tiles!
+
+//Left the files here for reference before I moved onto unity's default 3d tilemap editor.

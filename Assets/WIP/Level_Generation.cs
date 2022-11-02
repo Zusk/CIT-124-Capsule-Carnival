@@ -76,7 +76,7 @@ public class Level_Generation : MonoBehaviour
                     tile.SetParent(environmentHolder);
                 }
             }
-            else if (pixel.Equals(Color.yellow)
+            else if (pixel.Equals(Color.yellow))
             {
                 //Gets a position to place the player based on our current pixels iteration
                 Vector3 spawnPos = new Vector3(x * prefabSize, y * prefabSize, 0);
