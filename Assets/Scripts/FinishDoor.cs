@@ -11,7 +11,6 @@ public class FinishDoor : MonoBehaviour
     public GameObject infoPanel;
     public GameObject pointsDisplay;
     public GameObject finishDisplay;
-    public GameObject finishText;
     // Start is called before the first frame update
     private void OnTriggerEnter(Collider other)
     {
@@ -27,7 +26,6 @@ public class FinishDoor : MonoBehaviour
         playerComp.rigidbodyComponent.velocity = new Vector3(0, 0, 0);
         playerComp.playerModel.SetActive(false);
         playerComp.enabled = false;
-        finishText.SetActive(true);
 
         pointsDisplay.SetActive(false);
         infoPanel.SetActive(false);
