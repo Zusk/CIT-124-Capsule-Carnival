@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -9,22 +11,47 @@ public class Player : MonoBehaviour
     //Player jump height!
     private readonly float jump_height = 4;
 
+    //A bool to check if the player is dead
+    public bool isAlive = true;
+
+    //The layermask we use to check for when it comes to collison detection
     public LayerMask groundMask;
+    public GameObject deathParticle;
 
     //variables for holding keyboard pressed
     private bool spaceKeyWasPressed;
     //variable for horizontalInput
     private float horizontalInput;
+
+    //Variable for holding score
+    public int score = 0;
     //variable for our components
-    private Rigidbody rigidbodyComponent;
+    public GameObject canvas;
+    public TextMeshProUGUI ui_text;
+    public Rigidbody rigidbodyComponent;
     private ParticleSystem particleComponent;
     private Animator animatorComponent;
+    private AudioSource audioComponent;
+    public GameObject playerModel;
+    private GameObject playerCam;
+    public GameObject gameOverText;
+    public AudioClip jumpClip;
+    public AudioClip collectClip;
+    public AudioClip deathClip;
 
     //A constant to define wall check distance.
     private readonly float horizontalWallCheckDistBase = 0.2f;
     //Used for the ground detection script!
     private readonly float groundCheckDistance = 0.2f;
 
+    private float y_Velocity()
+    {
+        if (Is_Grounded())
+        {
+            return 0f;
+        }
+        return Mathf.Abs(rigidbodyComponent.velocity.y);
+    }
     private bool Is_Grounded()
     {
         //Mostly as-is from the example code. Usually it would have been easier to include a character controller component and use
@@ -62,13 +89,23 @@ public class Player : MonoBehaviour
         //Z is 0 always.
         return new Vector3(speed * horizontalInput, rigidbodyComponent.velocity.y, 0);
     }
+    public void PlayClip(AudioClip clip)
+    {
+        audioComponent.clip = clip;
+        audioComponent.Play();
+    }
 
     void Start()
     {
         //Reduces runtime calls by building references to our components here at runtime, rather then in our loops.
+        canvas = GameObject.Find("Canvas");
+        ui_text = GameObject.Find("PointsDisplay").transform.GetComponent<TextMeshProUGUI>();
         particleComponent = GetComponent<ParticleSystem>();
         rigidbodyComponent = GetComponent<Rigidbody>();
         animatorComponent = GetComponent<Animator>();
+        audioComponent = GetComponent<AudioSource>();
+        playerCam = transform.GetChild(0).gameObject;
+        playerModel = transform.GetChild(1).gameObject;
     }
 
     void Update()
@@ -82,9 +119,35 @@ public class Player : MonoBehaviour
     {
         //Moves the player based on input!
         Player_Move();
-        //Sets the animators state based on your current vertical velocity.
+        //Sets the animators state based on your current  vertical velocity.
         //It converts your velocity to an absolute value because we want how fast you are moving, either up or down.
-        animatorComponent.SetFloat("vertical_velocity", Mathf.Abs(rigidbodyComponent.velocity.y));
+        animatorComponent.SetFloat("vertical_velocity", y_Velocity());
+
+        //Handles player death here!
+        if(isAlive == false)
+        {
+            PlayerDeath();
+        }
+    }
+
+    private void PlayerDeath()
+    {
+        Player playerComp = GetComponent<Player>();
+        PlayClip(deathClip);
+        playerModel.SetActive(false);
+        gameOverText.SetActive(true);
+        Instantiate(deathParticle, transform.position, Quaternion.identity);
+        rigidbodyComponent.useGravity = false;
+        rigidbodyComponent.velocity = new Vector3(0, 0, 0);
+        playerComp.enabled = false;
+        StartCoroutine(LevelLoad());
+    }
+
+    IEnumerator LevelLoad()
+    {
+        yield return new WaitForSeconds(2);
+        Scene scene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(scene.name);
     }
 
     void Player_Input()
@@ -126,6 +189,8 @@ public class Player : MonoBehaviour
     {
         if (spaceKeyWasPressed == true && Is_Grounded())
         {
+            //Play the jump noise!
+            PlayClip(jumpClip);
             //Play the particle component! The particle component is a non-looping component which has a emission.
             particleComponent.Play();
             //if space was pressed, get Rigidbody component from our player
