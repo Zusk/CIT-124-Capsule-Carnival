@@ -30,6 +30,7 @@ public class Player : MonoBehaviour
     //variable for our components
     public GameObject canvas;
     public TextMeshProUGUI ui_text;
+    public CapsuleCollider capsuleCollider;
     public Rigidbody rigidbodyComponent;
     private ParticleSystem particleComponent;
     private Animator animatorComponent;
@@ -111,6 +112,7 @@ public class Player : MonoBehaviour
         rigidbodyComponent = GetComponent<Rigidbody>();
         animatorComponent = GetComponent<Animator>();
         audioComponent = GetComponent<AudioSource>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
         playerCam = transform.GetChild(0).gameObject;
         playerModel = transform.GetChild(1).gameObject;
     }
@@ -153,6 +155,8 @@ public class Player : MonoBehaviour
         //Does some handling for the rigibody component so that it stops moving
         rigidbodyComponent.useGravity = false;
         rigidbodyComponent.velocity = new Vector3(0, 0, 0);
+        //Disables the box collider
+        capsuleCollider.enabled = false;
         //Disables the player component
         playerComp.enabled = false;
         //starts a coroutine to reset the level in a certain amount of time ( After the game over text is done )
