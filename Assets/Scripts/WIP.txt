@@ -6,4 +6,4 @@ was somewhat out of the scope of the project for something that was meant to mak
 
 // Unity has no camera occlusion in the scene view editor. I know from the 124 videos that your computer isn't the best - didn't want to brick your machine by loading in 1000+ differently colored tiles!
 
-//Left the files here for reference before I moved onto unity's default 3d tilemap editor.
+//Left the files here for reference before I just created the level geometry in blender.
