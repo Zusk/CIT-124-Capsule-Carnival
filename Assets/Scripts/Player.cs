@@ -4,6 +4,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//This script is just a 'little' bigger then the one that was given to the class. Wanted to
+//really refine and improve the movement of the player character!
 public class Player : MonoBehaviour
 {
     //Player speed!
@@ -44,6 +46,10 @@ public class Player : MonoBehaviour
     //Used for the ground detection script!
     private readonly float groundCheckDistance = 0.2f;
 
+    //When a rigibody unity object is 'standing' on a slope, the engine considers it
+    //to be having lots of vertical velocity despite the object not actually moving.
+    //As we need to get a accurate vertical velocity for our jumping animation, we use this to
+    //print the absolute value of the vertical velocity, but return 0 if we are grounded.
     private float y_Velocity()
     {
         if (Is_Grounded())
@@ -89,6 +95,7 @@ public class Player : MonoBehaviour
         //Z is 0 always.
         return new Vector3(speed * horizontalInput, rigidbodyComponent.velocity.y, 0);
     }
+    //Just plays a certain clip!
     public void PlayClip(AudioClip clip)
     {
         audioComponent.clip = clip;
@@ -130,22 +137,34 @@ public class Player : MonoBehaviour
         }
     }
 
+    //Called when 'isAlive' is false, always from touching a evilcube
     private void PlayerDeath()
     {
+        //Gets this instance of the player character
         Player playerComp = GetComponent<Player>();
+        //Play the death noise!
         PlayClip(deathClip);
+        //hides the player model
         playerModel.SetActive(false);
+        //shows the game over text
         gameOverText.SetActive(true);
+        //Creates the particle
         Instantiate(deathParticle, transform.position, Quaternion.identity);
+        //Does some handling for the rigibody component so that it stops moving
         rigidbodyComponent.useGravity = false;
         rigidbodyComponent.velocity = new Vector3(0, 0, 0);
+        //Disables the player component
         playerComp.enabled = false;
+        //starts a coroutine to reset the level in a certain amount of time ( After the game over text is done )
         StartCoroutine(LevelLoad());
     }
 
+    //Yield can only be done from IEnumerator's, so lets use this!
     IEnumerator LevelLoad()
     {
+        //Wait 2 seconds...
         yield return new WaitForSeconds(2);
+        //Then reload the scene
         Scene scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
     }

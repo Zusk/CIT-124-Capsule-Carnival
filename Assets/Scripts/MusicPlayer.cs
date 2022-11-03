@@ -5,8 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class MusicPlayer : MonoBehaviour
 {
-    // Start is called before the first frame update
-    // Update is called once per frame
+    // This tiny script just moves the boom box to the listener ( the main camera ).
     void LateUpdate()
     {
         transform.position = Camera.main.transform.position;

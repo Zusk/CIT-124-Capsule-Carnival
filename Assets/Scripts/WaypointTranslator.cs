@@ -10,6 +10,8 @@ public class WaypointTranslator : MonoBehaviour
 
     private int currentWaypoint = 0;
 
+    //This script causes a game object to move from 'waypoint' to 'waypoint', with waypoints
+    //just being a list of transforms.
     void Update()
     {
         //check if we have reached the target waypoint
